@@ -1,8 +1,8 @@
 import Foundation
 
-#if os(Linux)
+#if os(Linux) || os(Windows)
     extension URL {
-        /// A compatibility shim for `URL.cachesDirectory` on Linux.
+        /// A compatibility shim for `URL.cachesDirectory` on Linux and Windows.
         ///
         /// This implementation relies on `FileManager` to determine the cache directory,
         /// falling back to standard Linux locations if necessary.

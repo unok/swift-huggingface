@@ -1,5 +1,56 @@
 import Foundation
 
+#if os(Windows)
+
+/// POSIX file permission bits (unused on Windows; kept for API compatibility).
+public typealias FilePermissions = Int32
+
+/// A no-op stub of `FileLock` for Windows.
+///
+/// Windows does not provide `flock(2)`. This stub preserves the public API
+/// surface so the package compiles on Windows; ``withLock(blocking:_:)``
+/// executes the body without cross-process locking.
+public struct FileLock: Sendable {
+    /// The path to the `.lock` file.
+    public let lockPath: URL
+
+    /// Maximum number of acquisition attempts (unused in the stub).
+    public let maxRetries: Int?
+
+    /// Seconds to wait between retry attempts (unused in the stub).
+    public let retryDelay: TimeInterval
+
+    /// POSIX permissions applied when creating the lock file (unused in the stub).
+    public let mode: FilePermissions
+
+    /// Whether acquisition retries on contention (unused in the stub).
+    public let blocking: Bool
+
+    public init(
+        path: URL,
+        maxRetries: Int? = 5,
+        retryDelay: TimeInterval = 1.0,
+        mode: FilePermissions = 0o644,
+        blocking: Bool = true
+    ) {
+        self.lockPath = path.appendingPathExtension("lock")
+        self.maxRetries = maxRetries
+        self.retryDelay = retryDelay
+        self.mode = mode
+        self.blocking = blocking
+    }
+
+    /// Executes `body` without acquiring any lock (Windows stub).
+    public func withLock<T>(
+        blocking: Bool? = nil,
+        _ body: () async throws -> T
+    ) async throws -> T {
+        try await body()
+    }
+}
+
+#else
+
 #if canImport(Darwin)
     import Darwin
 #elseif canImport(Glibc)
@@ -394,3 +445,5 @@ public enum FileLockError: Error, LocalizedError, Sendable {
         }
     }
 }
+
+#endif  // os(Windows)
