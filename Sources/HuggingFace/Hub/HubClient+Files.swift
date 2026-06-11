@@ -13,6 +13,36 @@ import Foundation
     import Xet
 #endif
 
+#if os(Windows)
+    /// Minimal `fnmatch(3)` replacement for Windows supporting `*` and `?`
+    /// wildcards (flags are ignored). Returns `0` on match, `1` otherwise,
+    /// mirroring the POSIX return convention used at the call sites.
+    private func fnmatch(_ pattern: String, _ string: String, _ flags: Int32) -> Int32 {
+        let p = Array(pattern.unicodeScalars)
+        let s = Array(string.unicodeScalars)
+        var pi = 0, si = 0
+        var starPi = -1, starSi = 0
+        while si < s.count {
+            if pi < p.count, p[pi] == "?" || p[pi] == s[si] {
+                pi += 1
+                si += 1
+            } else if pi < p.count, p[pi] == "*" {
+                starPi = pi
+                starSi = si
+                pi += 1
+            } else if starPi >= 0 {
+                pi = starPi + 1
+                starSi += 1
+                si = starSi
+            } else {
+                return 1
+            }
+        }
+        while pi < p.count, p[pi] == "*" { pi += 1 }
+        return pi == p.count ? 0 : 1
+    }
+#endif
+
 private let xetMinimumFileSizeBytes = 16 * 1024 * 1024  // 16MiB
 private let snapshotUnknownFileWeight: Int64 = 1
 
