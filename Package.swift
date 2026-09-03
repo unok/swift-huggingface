@@ -26,7 +26,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/mattt/EventSource.git", from: "1.0.0"),
+        // Windows patch: unok/EventSource windows-patch works around a swift-frontend 6.3.x
+        // crash (UnsafeContinuation in waitForLinuxCompletion). Upstream is mattt/EventSource 1.5.1.
+        .package(url: "https://github.com/unok/EventSource.git", branch: "windows-patch"),
         .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
         .package(url: "https://github.com/huggingface/swift-xet.git", from: "0.2.0"),
     ],
